@@ -4,7 +4,7 @@
 using namespace std;   
 
 const int N = 4; 
-const int NODES = (24*60/15);
+const int NODES = (24*60/15);  //96个节点
 const double POWER[37][2] ={{300, 354.28},
 {320, 346.31},
 {340, 343.14},
@@ -45,6 +45,15 @@ const double POWER[37][2] ={{300, 354.28},
 void Knapsack(int v[],int w[],int c,int n,int m[][10]); 
 void Traceback(int m[][10],int w[],int c,int n,int x[]); 
 
+bool getCoalConsumptionFromPower(int power, double &coalConsumption);
+
+//1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
+//2.负荷改变的最短时间是15分钟，每变动一次中间值煤耗2%，
+//  例如: 从320变化到340，煤耗为 (346.31 + （ 346.31 + 343.14 ）/2 * 2% )
+//3. 稳定后15分钟内煤耗增加1%,
+//  例如：达到340后第一个15分钟， 煤耗为 343.14 * （ 1+ 1%）
+//4. 每天出力一定，可手动输入某个时间段的出力值，由程序规划剩余出力，以实现煤耗最少
+//  例如： 从1点到6点，设定最低出力320，剩余由程序规划
 int main() 
 { 
     int c=8;
@@ -80,6 +89,11 @@ int main()
         } 
     } 
     cout<<endl; 
+	
+	//test
+	double coalConsumption = 0.0;
+	getCoalConsumptionFromPower(780, coalConsumption);
+	cout<<"coalConsumption = " <<coalConsumption<<endl; 
 
     return 0; 
 } 
@@ -133,4 +147,18 @@ void Traceback(int m[][10],int w[],int c,int n,int x[])
         } 
     } 
     x[n]=(m[n][c])?1:0; 
+}
+
+//Function
+bool getCoalConsumptionFromPower(int power, double &coalConsumption)
+{
+	for( int i = 0; i < 37; i++)
+	{
+		if ( power == POWER[i][0])
+		{
+			coalConsumption = POWER[i][1];
+			return true;
+		}
+	}
+	return false;
 }
