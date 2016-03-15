@@ -75,6 +75,7 @@ int main()
     } 
     cout<<endl; 
 
+	cout<<"背包能装的最大容量为："<<c<<endl;
     Knapsack(v,w,c,N,m); 
 
     cout<<"背包能装的最大价值为："<<m[1][c]<<endl; 
@@ -149,7 +150,7 @@ void Traceback(int m[][10],int w[],int c,int n,int x[])
     x[n]=(m[n][c])?1:0; 
 }
 
-//Function
+//Function getCoalConsumptionFromPower
 bool getCoalConsumptionFromPower(int power, double &coalConsumption)
 {
 	for( int i = 0; i < 37; i++)
@@ -162,3 +163,5 @@ bool getCoalConsumptionFromPower(int power, double &coalConsumption)
 	}
 	return false;
 }
+
+

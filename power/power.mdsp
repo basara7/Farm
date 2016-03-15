@@ -80,11 +80,9 @@ resourceIncludeDirectory=
 extraResourceOptions=
 
 [Source]
-
+1=calcPower.cpp
 [Header]
-
 [Resource]
-
 [Other]
-
 [History]
+calcPower.cpp,2604
