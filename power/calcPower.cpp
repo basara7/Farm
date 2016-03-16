@@ -6,53 +6,54 @@
 using namespace std;
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
-const int totalW = 60;
-const int n = 2;
-const int value[2] = {1, 30};
-const int weight[2]= {1, 50};
-int dp[10005];
+const int totalW =50860;
+const int n = 35;
+int value[35] = {0};
+int weight[35] = {0};
+int dp[30000];
+int bag[MAXL][300000] ={0};
 int min(int a, int b) { return a < b ? a : b; }
  
 const int NODES = (24*60/15);  //96个节点
-const double POWER[37][2] ={{300, 354.28},
-{320, 346.31},
-{340, 343.14},
-{360, 340.86},
-{380, 338.26},
-{400, 334.92},
-{420, 332.15},
-{440, 333.14},
-{460, 330.95},
-{480, 323.03},
-{500, 324.81},
-{520, 325.81},
-{540, 320.41},
-{560, 316.12},
-{580, 318.04},
-{600, 314.53},
-{620, 313.28},
-{640, 313.57},
-{660, 307.75},
-{680, 307.15},
-{700, 306.18},
-{720, 305.35},
-{740, 304.86},
-{760, 305.35},
-{780, 300.66},
-{800, 301.74},
-{820, 301.32},
-{840, 299.13},
-{860, 297.12},
-{880, 294.51},
-{900, 294.52},
-{920, 295.98},
-{940, 296.33},
-{960, 296.79},
-{980, 295.27},
-{1000, 297.23},
-{1020, 298.2}};
+const int POWER[35][2] =  //{{300, 35428},
+{{320, 34631},
+{340, 34314},
+{360, 34086},
+{380, 33826},
+{400, 33492},
+{420, 33215},
+{440, 33314},
+{460, 33095},
+{480, 32303},
+{500, 32481},
+{520, 32581},
+{540, 32041},
+{560, 31612},
+{580, 31804},
+{600, 31453},
+{620, 31328},
+{640, 31357},
+{660, 30775},
+{680, 30715},
+{700, 30618},
+{720, 30535},
+{740, 30486},
+{760, 30535},
+{780, 30066},
+{800, 30174},
+{820, 30132},
+{840, 29913},
+{860, 29712},
+{880, 29451},
+{900, 29452},
+{920, 29598},
+{940, 29633},
+{960, 29679},
+{980, 29527},
+{1000, 29723}};
+//{1020, 29820}};
 
-bool getCoalConsumptionFromPower(int power, double &coalConsumption);
+void initCoalConsumptionAndPower();
 
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
 //2.负荷改变的最短时间是15分钟，每变动一次中间值煤耗2%，
@@ -64,9 +65,9 @@ bool getCoalConsumptionFromPower(int power, double &coalConsumption);
 
 int main(){
         dp[0] = 0;
-		int bag[MAXL][MAXL] ={0};
         for(int i = 1; i <= totalW; i++) dp[i] = INF;
         //---
+		initCoalConsumptionAndPower();
         for(int i = 0; i < n; i++){
             for(int j = weight[i]; j <= totalW; j++){
                     dp[j] = min(dp[j-weight[i]]+value[i], dp[j]);
@@ -76,11 +77,11 @@ int main(){
 		
         if(dp[totalW] == INF) 
 		{
-			printf("This is impossible.\n");
+			cout <<"This is impossible" << endl;
 		}
         else
 		{			
-			printf("The minimum amount of money in the piggy-bank is %d.\n", dp[totalW]);
+			cout<< "The minimum amount of money in the piggy-bank is" <<dp[totalW] <<endl;
 			int i = n, j = totalW;  
 			while(i > 0 && j > 0)  
             {  
@@ -99,18 +100,15 @@ int main(){
     return 0;
 }
 
-//Function getCoalConsumptionFromPower
-bool getCoalConsumptionFromPower(int power, double &coalConsumption)
+//Function initCoalConsumptionAndPower
+void initCoalConsumptionAndPower()
 {
-	for( int i = 0; i < 37; i++)
+	for( int i = 0; i < n; i++)
 	{
-		if ( power == POWER[i][0])
-		{
-			coalConsumption = POWER[i][1];
-			return true;
-		}
+		weight[i] = POWER[i][0];
+        value[i] = POWER[i][1];
 	}
-	return false;
+
 }
 
 
