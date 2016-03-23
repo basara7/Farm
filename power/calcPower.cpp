@@ -54,9 +54,10 @@ const int POWER[35][2] =  //{{300, 35428},
 //{1020, 29820}};
 
 void initCoalConsumptionAndPower();
-bool getCoalConsumptionFromPower(int power, double &coalConsumption);
+bool getCoalConsumptionFromPower(int power, int &coalConsumption);
 int powerIncrease(int power);
 int powerStable (int power);
+int findPower (int averagePower);
 
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
 //2.负荷改变的最短时间是15分钟，每变动一次中间值煤耗2%，
@@ -66,7 +67,17 @@ int powerStable (int power);
 //4. 每天出力一定，可手动输入某个时间段的出力值，由程序规划剩余出力，以实现煤耗最少
 //  例如： 从1点到6点，设定最低出力320，剩余由程序规划
 
+
+//结论：发电功率保持恒定时最省煤
+//设计： 每天的总发电量 - 规定时间的规定发电量（需要注意功率跳变时的煤耗），
+//可以得到剩余时间内需要完成的发电量，
+//将发电量除以剩余的节点数，得到平均值跟表格里的功率值对比，找到最接近的功率值
+//理论上保持这个功率值即可
+
+
+
 int main(){
+	/*
         dp[0] = 0;
         for(int i = 1; i <= totalW; i++) dp[i] = INF;
         //---
@@ -98,8 +109,46 @@ int main(){
             }  
 		    cout << endl; 
 		}
-		
+	*/	
+	
 
+	 for (int i = 0; i < 15; i ++ )	
+	 {
+		 int power = 320 + 20*i ;
+		 int increaseConsumption = 0;
+		 
+		 int num = (35 - 15)/5;
+		 
+		 for ( int j = 0 ; j < num ; j ++)
+		 {
+			 increaseConsumption +=  powerIncrease( power + 100 * j);
+		 }
+		 
+		 increaseConsumption += powerIncrease( power + 100 * (num -1 ));
+		
+        cout << " power = "<< power <<" increase power, 75 min CoalConsumption = " <<  increaseConsumption << endl;
+	
+	    int currentConsumption = 0;
+		int getPower = findPower(((power*(num+1) +100*num)/(num+1)));
+	
+	    getCoalConsumptionFromPower( getPower, currentConsumption);
+	
+	    cout << " power = " << getPower <<" stay, 75 min CoalConsumption = " << currentConsumption*(num+1) << endl;
+		
+		if ( increaseConsumption - currentConsumption*(num+1) < 0 )
+		{
+			cout << "****************************************************" << endl;
+			cout << "****************************************************" << endl;
+		}
+	
+	 }
+ 
+	/*
+	int getPower = findPower(721);
+	int currentConsumption = 0;
+	getCoalConsumptionFromPower(getPower, currentConsumption);
+	cout << " power = " << getPower <<" stay, 30 min CoalConsumption = " << currentConsumption*2 << endl;
+	*/
     return 0;
 }
 
@@ -164,3 +213,24 @@ int powerStable(int power)
 		return 0;
 	}
 }
+
+int findPower (int averagePower)
+{
+	for (int i = 0 ; i < 35 ; i++)
+	{
+		int power = 320 + 20*i;
+		if (( power - averagePower >= 0)
+			&& abs(power - averagePower) < 20)
+			{
+				cout << "averagePower is " << averagePower << " then power should be " << power << endl;
+				return power;
+			}
+			else 
+			{
+				continue; 
+			}
+	}
+	return 0;
+}
+
+
