@@ -54,6 +54,9 @@ const int POWER[35][2] =  //{{300, 35428},
 //{1020, 29820}};
 
 void initCoalConsumptionAndPower();
+bool getCoalConsumptionFromPower(int power, double &coalConsumption);
+int powerIncrease(int power);
+int powerStable (int power);
 
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
 //2.负荷改变的最短时间是15分钟，每变动一次中间值煤耗2%，
@@ -111,4 +114,53 @@ void initCoalConsumptionAndPower()
 
 }
 
+//Function getCoalConsumptionFromPower
+bool getCoalConsumptionFromPower(int power, int &coalConsumption)
+{
+	for( int i = 0; i < 37; i++)
+	{
+		if ( power == POWER[i][0])
+		{
+			coalConsumption = POWER[i][1];
+			return true;
+		}
+	}
+	return false;
+}
 
+//Function powerIncrease
+int powerIncrease(int power)
+{
+	int coalConsumption = 0;
+	int nextCoalConsumption = 0;
+	int currentConsumption = 0;
+	//15分钟的功率变化量为100
+	int nextPower = power + 100;
+	
+	if ( getCoalConsumptionFromPower( power, coalConsumption) 
+		&&  getCoalConsumptionFromPower( nextPower, nextCoalConsumption) )
+		{
+			currentConsumption = (int)(coalConsumption + ((coalConsumption + nextCoalConsumption)/2)* 0.02);
+			return currentConsumption;
+		}
+		else
+		{
+			return 0;
+		}
+}
+
+//Function powerStable
+int powerStable(int power)
+{
+	int coalConsumption = 0;
+	int currentConsumption = 0;
+	if ( getCoalConsumptionFromPower( power, coalConsumption) )
+	{
+	    currentConsumption = (int) (coalConsumption * (1 + 0.01));
+		return currentConsumption;
+	}
+	else
+	{
+		return 0;
+	}
+}
