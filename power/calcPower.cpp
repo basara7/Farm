@@ -7,15 +7,22 @@ using namespace std;
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
 const int totalW =50860;
-const int n = 35;
-int value[35] = {0};
-int weight[35] = {0};
+const int n = 36;
+int value[36] = {0};
+int weight[36] = {0};
+
+const int NODES = (24*60/15);  //96个节点
+int powerAlocate[NODES] = {0};
+
+/*
 int dp[30000];
 int bag[MAXL][300000] ={0};
+*/
+
 int min(int a, int b) { return a < b ? a : b; }
  
-const int NODES = (24*60/15);  //96个节点
-const int POWER[35][2] =  //{{300, 35428},
+
+const int POWER[36][2] =  //{{300, 35428},
 {{320, 34631},
 {340, 34314},
 {360, 34086},
@@ -50,15 +57,17 @@ const int POWER[35][2] =  //{{300, 35428},
 {940, 29633},
 {960, 29679},
 {980, 29527},
-{1000, 29723}};
-//{1020, 29820}};
+{1000, 29723},
+{1020, 29820}};
 
 void initCoalConsumptionAndPower();
 bool getCoalConsumptionFromPower(int power, int &coalConsumption);
 int powerIncrease(int power);
 int powerStable (int power);
 int findPower (int averagePower);
+void setInputPower( int timeStart, int timeEnd, int power);
 
+/*
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
 //2.负荷改变的最短时间是15分钟，每变动一次中间值煤耗2%，
 //  例如: 从320变化到340，煤耗为 (346.31 + （ 346.31 + 343.14 ）/2 * 2% )
@@ -72,12 +81,13 @@ int findPower (int averagePower);
 //设计： 每天的总发电量 - 规定时间的规定发电量（需要注意功率跳变时的煤耗），
 //可以得到剩余时间内需要完成的发电量，
 //将发电量除以剩余的节点数，得到平均值跟表格里的功率值对比，找到最接近的功率值
-//理论上保持这个功率值即可
-
-
+//根据程序计算，只有保持某个功率值一直不变是最省煤的
+//所以，理论上保持这个功率值即可
+*/
 
 int main(){
 	/*
+	//完全背包取最小值算法
         dp[0] = 0;
         for(int i = 1; i <= totalW; i++) dp[i] = INF;
         //---
@@ -111,37 +121,46 @@ int main(){
 		}
 	*/	
 	
-
-	 for (int i = 0; i < 15; i ++ )	
+	//验证只有功率恒定才是最省煤的方案
+    for ( int num = 1; num <= 7; num ++)		
+	{
+		cout << " ===== start from n = " << num << "=======================" <<endl;
+		int count = 0;
+	
+	 for (int i = 0; i < (n-5*num); i ++ )	
 	 {
 		 int power = 320 + 20*i ;
 		 int increaseConsumption = 0;
 		 
-		 int num = (35 - 15)/5;
+		 //int num = (35 - 15)/5;
 		 
 		 for ( int j = 0 ; j < num ; j ++)
 		 {
 			 increaseConsumption +=  powerIncrease( power + 100 * j);
 		 }
 		 
-		 increaseConsumption += powerIncrease( power + 100 * (num -1 ));
+		 increaseConsumption += powerStable( power + 100 * (num -1 ));
 		
-        cout << " power = "<< power <<" increase power, 75 min CoalConsumption = " <<  increaseConsumption << endl;
+        cout << " power = "<< power <<" increase power, "<< 15*num <<" mins CoalConsumption = " <<  increaseConsumption << endl;
 	
 	    int currentConsumption = 0;
-		int getPower = findPower(((power*(num+1) +100*num)/(num+1)));
+		int getPower = findPower(((power*2 +100*num)/2));
 	
 	    getCoalConsumptionFromPower( getPower, currentConsumption);
 	
-	    cout << " power = " << getPower <<" stay, 75 min CoalConsumption = " << currentConsumption*(num+1) << endl;
+	    cout << " power = " << getPower <<" stay, "<< 15*num << " mins CoalConsumption = " << currentConsumption*(num+1) << endl;
 		
 		if ( increaseConsumption - currentConsumption*(num+1) < 0 )
 		{
+			count ++;
 			cout << "****************************************************" << endl;
+			
 			cout << "****************************************************" << endl;
 		}
-	
 	 }
+		cout << " ===== end at n = " << num << " count = " << count << "=======================" << endl;
+		cout << endl;
+	}
  
 	/*
 	int getPower = findPower(721);
@@ -149,6 +168,11 @@ int main(){
 	getCoalConsumptionFromPower(getPower, currentConsumption);
 	cout << " power = " << getPower <<" stay, 30 min CoalConsumption = " << currentConsumption*2 << endl;
 	*/
+	
+	setInputPower(20, 22, 320);
+	
+	setInputPower(22, 24, 420);
+	
     return 0;
 }
 
@@ -231,6 +255,30 @@ int findPower (int averagePower)
 			}
 	}
 	return 0;
+}
+
+void setInputPower( int timeStart, int timeEnd, int power)
+{
+	if (( timeStart < 0 || timeStart > 24)
+		|| (timeEnd < 0 || timeEnd > 24 ))
+		{
+			cout << "out of range!!!!" << endl;
+			return;
+		}
+	
+	int startPosition = timeStart*4;
+	int endPosition = timeEnd*4 - 1;
+	
+	for (int i = startPosition; i <= endPosition; i++)
+	{
+		powerAlocate[i] = power;
+	}
+	
+	//print powerAlocate
+	for (int j = 0; j < NODES; j++)
+	{
+		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
+	}
 }
 
 
