@@ -208,7 +208,7 @@ int powerIncrease(int power, int increasePower)
 	int nextCoalConsumption = 0;
 	int currentConsumption = 0;
 	//15分钟的功率变化量最大为100
-	if ( increasePower > 100 )
+	if ( abs(increasePower) > 1000 )
 	{
 		cout << "out of range!!!!" << endl;
 		return 0;
@@ -290,10 +290,12 @@ int setInputPower( int timeStart, int timeEnd, int power)
 	}
 	
 	//print powerAlocate
+	/*
 	for (int j = 0; j < NODES; j++)
 	{
 		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
 	}
+	*/
 	
 	return count;
 }
@@ -314,9 +316,9 @@ int getAveragePower()
 	remainPowerCount -= setPowerCount;
 	remainPower -= setPowerCount*320; //320 should modified. 
 	
-	setPowerCount = setInputPower(22, 23, 420);
+	setPowerCount = setInputPower(22, 23, 400);
 	remainPowerCount -= setPowerCount;
-	remainPower -= setPowerCount*420; //420 should modified. 
+	remainPower -= setPowerCount*400; //400 should modified. 
 	cout << " remainPowerCount = " << remainPowerCount << endl;
 	cout << " remainPower = " << remainPower << endl;
 	
@@ -328,7 +330,49 @@ int getAveragePower()
 	
 	
 	//test 2 case
-	//1. 320 -> average -> 
+	//1. 320 -> average -> 400 
+	int totalCoal  = 0;
+	for (int i = 0; i < NODES; i++)
+	{
+		if( powerAlocate[i] == 0)
+		{
+			powerAlocate[i] = averagePower;
+		}
+	}
+	
+	for (int i = 0; i < NODES; i++)
+	{
+		bool changeFlag = false;
+		if ( i < NODES-1 && powerAlocate[i] !=  powerAlocate[i+1])
+		{
+			totalCoal += powerIncrease(powerAlocate[i], (powerAlocate[i+1] - powerAlocate[i]));
+			changeFlag = true;
+		}
+		else if ((changeFlag == true && i < NODES-1 && powerAlocate[i] ==  powerAlocate[i+1]) 
+			|| (changeFlag == true && i == NODES-1)
+			|| i == 0)
+		{
+			totalCoal += powerStable(powerAlocate[i]);
+			changeFlag = false;
+		}
+		else 
+		{
+			int CoalConsumption = 0; 
+			getCoalConsumptionFromPower( powerAlocate[i], CoalConsumption );
+			totalCoal += CoalConsumption;
+		}
+		
+	}
+	
+	for (int j = 0; j < NODES; j++)
+	{
+		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
+	}
+	cout << " totalCoal = " << totalCoal << endl;
+	 
+	
+	//2. 320-> 420 
+	
 	
 	return averagePower;
 }
