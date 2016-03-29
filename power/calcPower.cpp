@@ -6,7 +6,7 @@
 using namespace std;
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
-const int totalW =50860;
+const int totalW =12500*4;
 const int n = 36;
 int value[36] = {0};
 int weight[36] = {0};
@@ -62,10 +62,11 @@ const int POWER[36][2] =  //{{300, 35428},
 
 void initCoalConsumptionAndPower();
 bool getCoalConsumptionFromPower(int power, int &coalConsumption);
-int powerIncrease(int power);
+int powerIncrease(int power, int increasePower);
 int powerStable (int power);
 int findPower (int averagePower);
-void setInputPower( int timeStart, int timeEnd, int power);
+int setInputPower( int timeStart, int timeEnd, int power);
+int getAveragePower();
 
 /*
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
@@ -121,6 +122,7 @@ int main(){
 		}
 	*/	
 	
+	/*
 	//验证只有功率恒定才是最省煤的方案
     for ( int num = 1; num <= 7; num ++)		
 	{
@@ -161,6 +163,7 @@ int main(){
 		cout << " ===== end at n = " << num << " count = " << count << "=======================" << endl;
 		cout << endl;
 	}
+	*/
  
 	/*
 	int getPower = findPower(721);
@@ -169,10 +172,7 @@ int main(){
 	cout << " power = " << getPower <<" stay, 30 min CoalConsumption = " << currentConsumption*2 << endl;
 	*/
 	
-	setInputPower(20, 22, 320);
-	
-	setInputPower(22, 24, 420);
-	
+	getAveragePower();
     return 0;
 }
 
@@ -202,13 +202,18 @@ bool getCoalConsumptionFromPower(int power, int &coalConsumption)
 }
 
 //Function powerIncrease
-int powerIncrease(int power)
+int powerIncrease(int power, int increasePower)
 {
 	int coalConsumption = 0;
 	int nextCoalConsumption = 0;
 	int currentConsumption = 0;
-	//15分钟的功率变化量为100
-	int nextPower = power + 100;
+	//15分钟的功率变化量最大为100
+	if ( increasePower > 100 )
+	{
+		cout << "out of range!!!!" << endl;
+		return 0;
+	}
+	int nextPower = power + increasePower;
 	
 	if ( getCoalConsumptionFromPower( power, coalConsumption) 
 		&&  getCoalConsumptionFromPower( nextPower, nextCoalConsumption) )
@@ -238,6 +243,7 @@ int powerStable(int power)
 	}
 }
 
+//Function findPower
 int findPower (int averagePower)
 {
 	for (int i = 0 ; i < 35 ; i++)
@@ -257,17 +263,26 @@ int findPower (int averagePower)
 	return 0;
 }
 
-void setInputPower( int timeStart, int timeEnd, int power)
+//Function: setInputPower
+int setInputPower( int timeStart, int timeEnd, int power)
 {
+	int count = 0;
 	if (( timeStart < 0 || timeStart > 24)
 		|| (timeEnd < 0 || timeEnd > 24 ))
 		{
 			cout << "out of range!!!!" << endl;
-			return;
+			return 0;
 		}
+	if (timeStart > timeEnd)
+	{
+		cout << "timeStart is later than timeEnd!!!!" << endl;
+			return 0;
+	}
 	
 	int startPosition = timeStart*4;
 	int endPosition = timeEnd*4 - 1;
+	
+	count = timeEnd*4 - timeStart*4;
 	
 	for (int i = startPosition; i <= endPosition; i++)
 	{
@@ -279,6 +294,41 @@ void setInputPower( int timeStart, int timeEnd, int power)
 	{
 		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
 	}
+	
+	return count;
 }
 
-
+//Function 
+int getAveragePower()
+{
+	int averagePower = 0;
+	int setPowerCount = 0; 
+	int remainPowerCount = NODES;
+	int remainPower = totalW;
+	
+	
+	
+	
+	
+	setPowerCount = setInputPower(18, 20, 320);
+	remainPowerCount -= setPowerCount;
+	remainPower -= setPowerCount*320; //320 should modified. 
+	
+	setPowerCount = setInputPower(22, 23, 420);
+	remainPowerCount -= setPowerCount;
+	remainPower -= setPowerCount*420; //420 should modified. 
+	cout << " remainPowerCount = " << remainPowerCount << endl;
+	cout << " remainPower = " << remainPower << endl;
+	
+	averagePower = (int)remainPower/remainPowerCount;
+	cout << " averagePower = " << averagePower << endl;
+	
+	averagePower = findPower(averagePower);
+	cout << " averagePower = " << averagePower << endl;
+	
+	
+	//test 2 case
+	//1. 320 -> average -> 
+	
+	return averagePower;
+}
