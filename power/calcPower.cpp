@@ -207,8 +207,8 @@ int powerIncrease(int power, int increasePower)
 	int coalConsumption = 0;
 	int nextCoalConsumption = 0;
 	int currentConsumption = 0;
-	//15分钟的功率变化量最大为100
-	if ( abs(increasePower) > 1000 )
+	//15分钟的功率变化量最大为200
+	if ( abs(increasePower) > 200 )
 	{
 		cout << "out of range!!!!" << endl;
 		return 0;
@@ -334,10 +334,23 @@ int getAveragePower()
 	int totalCoal  = 0;
 	for (int i = 0; i < NODES; i++)
 	{
-		if( powerAlocate[i] == 0)
+		if( powerAlocate[i] == 0 && 
+			((i > 0 && abs(powerAlocate[i-1] - averagePower) > 200)))
 		{
-			powerAlocate[i] = averagePower;
+			 if ( powerAlocate[i-1] - averagePower > 0 )
+			 {
+			     powerAlocate[i] = powerAlocate[i-1] - 200;
+			 }
+			 else
+			 {
+				powerAlocate[i] = powerAlocate[i-1] + 200;
+			 }
 		}
+			else if (powerAlocate[i] == 0)
+			{
+				powerAlocate[i] = averagePower;
+			}
+
 	}
 	
 	for (int i = 0; i < NODES; i++)
