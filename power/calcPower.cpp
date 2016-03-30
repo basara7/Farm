@@ -4,6 +4,8 @@
 #include<cstdio>
 #include<cstring>
 using namespace std;
+
+#define MAXINTERVAL 200
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
 const int totalW =12500*4;
@@ -121,49 +123,51 @@ int main(){
 		    cout << endl; 
 		}
 	*/	
-	
+
 	/*
-	//验证只有功率恒定才是最省煤的方案
-    for ( int num = 1; num <= 7; num ++)		
-	{
-		cout << " ===== start from n = " << num << "=======================" <<endl;
-		int count = 0;
+	15*10 mins 
+	20   341428
+    40   334390
+    100  330154
+    200  328857
+
+    15*11 mins
+    20   374334
+    40   366971
+    100  362735
+    200  361438
+	*/
 	
-	 for (int i = 0; i < (n-5*num); i ++ )	
-	 {
-		 int power = 320 + 20*i ;
+	//验证只有功率恒定才是最省煤的方案
+	/*
+		cout << " ===== start from  320 interval 20 =======================" <<endl;
+		
+		 int power = 320 ;
 		 int increaseConsumption = 0;
 		 
 		 //int num = (35 - 15)/5;
 		 
-		 for ( int j = 0 ; j < num ; j ++)
+		 for ( int j = 0 ; j < 1 ; j ++)
 		 {
-			 increaseConsumption +=  powerIncrease( power + 100 * j);
+			 increaseConsumption +=  powerIncrease( power+ 200*j, 200);
 		 }
 		 
-		 increaseConsumption += powerStable( power + 100 * (num -1 ));
+		 increaseConsumption += powerStable( power + 200 );
+		 
+	     int currentConsumption = 0;
+	     getCoalConsumptionFromPower(power + 200 , currentConsumption);
+		 
+		increaseConsumption += currentConsumption*9;
 		
-        cout << " power = "<< power <<" increase power, "<< 15*num <<" mins CoalConsumption = " <<  increaseConsumption << endl;
+        cout << " power = "<< power <<" increase power, "<< 15*10 <<" mins CoalConsumption = " <<  increaseConsumption << endl;
 	
-	    int currentConsumption = 0;
-		int getPower = findPower(((power*2 +100*num)/2));
 	
-	    getCoalConsumptionFromPower( getPower, currentConsumption);
+	    //getCoalConsumptionFromPower( getPower, currentConsumption);
 	
-	    cout << " power = " << getPower <<" stay, "<< 15*num << " mins CoalConsumption = " << currentConsumption*(num+1) << endl;
-		
-		if ( increaseConsumption - currentConsumption*(num+1) < 0 )
-		{
-			count ++;
-			cout << "****************************************************" << endl;
-			
-			cout << "****************************************************" << endl;
-		}
-	 }
-		cout << " ===== end at n = " << num << " count = " << count << "=======================" << endl;
-		cout << endl;
-	}
-	*/
+	    //cout << " power = " << getPower <<" stay, "<< 15*num << " mins CoalConsumption = " << currentConsumption*(num+1) << endl;
+	*/	
+
+	
  
 	/*
 	int getPower = findPower(721);
@@ -208,7 +212,7 @@ int powerIncrease(int power, int increasePower)
 	int nextCoalConsumption = 0;
 	int currentConsumption = 0;
 	//15分钟的功率变化量最大为200
-	if ( abs(increasePower) > 200 )
+	if ( abs(increasePower) > MAXINTERVAL )
 	{
 		cout << "out of range!!!!" << endl;
 		return 0;
@@ -300,7 +304,7 @@ int setInputPower( int timeStart, int timeEnd, int power)
 	return count;
 }
 
-//Function 
+//Function getAveragePower
 int getAveragePower()
 {
 	int averagePower = 0;
@@ -308,17 +312,14 @@ int getAveragePower()
 	int remainPowerCount = NODES;
 	int remainPower = totalW;
 	
-	
-	
-	
-	
+
 	setPowerCount = setInputPower(18, 20, 320);
 	remainPowerCount -= setPowerCount;
 	remainPower -= setPowerCount*320; //320 should modified. 
 	
-	setPowerCount = setInputPower(22, 23, 400);
+	setPowerCount = setInputPower(21, 23, 980);
 	remainPowerCount -= setPowerCount;
-	remainPower -= setPowerCount*400; //400 should modified. 
+	remainPower -= setPowerCount*980; //400 should modified. 
 	cout << " remainPowerCount = " << remainPowerCount << endl;
 	cout << " remainPower = " << remainPower << endl;
 	
@@ -334,24 +335,51 @@ int getAveragePower()
 	int totalCoal  = 0;
 	for (int i = 0; i < NODES; i++)
 	{
-		if( powerAlocate[i] == 0 && 
-			((i > 0 && abs(powerAlocate[i-1] - averagePower) > 200)))
+		if( powerAlocate[i] == 0)
 		{
-			 if ( powerAlocate[i-1] - averagePower > 0 )
-			 {
-			     powerAlocate[i] = powerAlocate[i-1] - 200;
-			 }
-			 else
-			 {
-				powerAlocate[i] = powerAlocate[i-1] + 200;
-			 }
+			powerAlocate[i] = averagePower;
 		}
-			else if (powerAlocate[i] == 0)
-			{
-				powerAlocate[i] = averagePower;
-			}
-
+		else
+		{
+			continue;
+		}
+		
 	}
+	
+	for (int i = 0; i < NODES; i++)
+	{
+		if ( (i < NODES-1) && (abs(powerAlocate[i] - powerAlocate[i+1]) > MAXINTERVAL) )
+		{
+			if ( powerAlocate[i] == averagePower )
+			{
+				if ( powerAlocate[i] - powerAlocate[i+1] > 0 ) 
+				{
+					powerAlocate[i] = powerAlocate[i+1] + MAXINTERVAL;
+				}
+				else
+				{
+					powerAlocate[i] = powerAlocate[i+1] - MAXINTERVAL;
+				}
+			}
+			else if ( powerAlocate[i+1] == averagePower )
+			{
+				if ( powerAlocate[i] - powerAlocate[i+1] > 0 )
+				{
+					powerAlocate[i+1] = powerAlocate[i] - MAXINTERVAL;
+				}
+				else
+				{
+					powerAlocate[i+1] = powerAlocate[i] + MAXINTERVAL;
+				}
+			}
+			else
+			{
+				cout << "Invaild input power!" << endl;
+				return -1;
+			}
+		}
+	}
+		
 	
 	for (int i = 0; i < NODES; i++)
 	{
@@ -377,12 +405,15 @@ int getAveragePower()
 		
 	}
 	
+	int totalPower = 0;
 	for (int j = 0; j < NODES; j++)
 	{
 		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
+		totalPower += powerAlocate[j];
 	}
 	cout << " totalCoal = " << totalCoal << endl;
-	 
+	
+	cout << " Origin totalpower = " << totalW/4 << " actual totalpower = " << totalPower/4 << endl;
 	
 	//2. 320-> 420 
 	
