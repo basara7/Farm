@@ -3,12 +3,14 @@
 #include <iostream>   
 #include<cstdio>
 #include<cstring>
+#include<fstream>
 using namespace std;
 
 #define MAXINTERVAL 200
+#define LOWESTPOWER 320
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
-const int totalW =12500*4;
+const int totalW =20000*4;
 const int n = 36;
 int value[36] = {0};
 int weight[36] = {0};
@@ -69,6 +71,7 @@ int powerStable (int power);
 int findPower (int averagePower);
 int setInputPower( int timeStart, int timeEnd, int power);
 int getAveragePower();
+void saveToFile();
 
 /*
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
@@ -313,13 +316,13 @@ int getAveragePower()
 	int remainPower = totalW;
 	
 
-	setPowerCount = setInputPower(18, 20, 320);
+	setPowerCount = setInputPower(1, 6, 320);
 	remainPowerCount -= setPowerCount;
 	remainPower -= setPowerCount*320; //320 should modified. 
 	
-	setPowerCount = setInputPower(21, 23, 980);
-	remainPowerCount -= setPowerCount;
-	remainPower -= setPowerCount*980; //400 should modified. 
+	//setPowerCount = setInputPower(21, 23, 980);
+	//remainPowerCount -= setPowerCount;
+	//remainPower -= setPowerCount*980; //400 should modified. 
 	cout << " remainPowerCount = " << remainPowerCount << endl;
 	cout << " remainPower = " << remainPower << endl;
 	
@@ -327,11 +330,11 @@ int getAveragePower()
 	cout << " averagePower = " << averagePower << endl;
 	
 	averagePower = findPower(averagePower);
-	cout << " averagePower = " << averagePower << endl;
+	cout << " find : averagePower = " << averagePower << endl;
 	
 	
-	//test 2 case
-	//1. 320 -> average -> 400 
+	//test 1 case
+	//1. 320 -> average
 	int totalCoal  = 0;
 	for (int i = 0; i < NODES; i++)
 	{
@@ -379,8 +382,48 @@ int getAveragePower()
 			}
 		}
 	}
-		
 	
+	/*
+	
+	remainPower = totalW;
+	remainPowerCount = NODES;
+	
+	for (int i = 0; i < NODES; i++)
+	{
+		if ( averagePower != powerAlocate[i] )
+		{
+			remainPower -=  powerAlocate[i];
+			remainPowerCount--;
+		}
+		else
+		{
+			powerAlocate[i] = 0;
+		}
+	}
+	
+	cout << " ===================================== " << endl;
+	cout << " The second round : remainPowerCount = " << remainPowerCount << endl;
+	cout << " The second round : remainPower = " << remainPower << endl;
+	averagePower = (int)remainPower/remainPowerCount;
+	cout << " The second round : averagePower = " << averagePower << endl;
+	
+	averagePower = findPower(averagePower);
+	cout << " The second round : find averagePower = " << averagePower << endl;
+	
+	for (int i = 0; i < NODES; i++)
+	{
+		if ( 0 == powerAlocate[i])
+		{
+			 powerAlocate[i] = averagePower;
+		}
+		else
+		{
+			continue;
+		}
+	}
+	*/
+	
+	//calculate the actual coal
 	for (int i = 0; i < NODES; i++)
 	{
 		bool changeFlag = false;
@@ -405,18 +448,26 @@ int getAveragePower()
 		
 	}
 	
+	
+	
+	//write to file
+	ofstream outfile("power.txt");
+	
 	int totalPower = 0;
 	for (int j = 0; j < NODES; j++)
 	{
 		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
+		
+		outfile << j << "   " <<  powerAlocate[j] << endl;
+		
 		totalPower += powerAlocate[j];
 	}
+	
+	outfile.close();
+	
 	cout << " totalCoal = " << totalCoal << endl;
 	
-	cout << " Origin totalpower = " << totalW/4 << " actual totalpower = " << totalPower/4 << endl;
-	
-	//2. 320-> 420 
-	
-	
+	cout << " Origin totalpower = " << totalW << " actual totalpower = " << totalPower << endl;
+
 	return averagePower;
 }
