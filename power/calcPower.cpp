@@ -10,7 +10,7 @@ using namespace std;
 #define LOWESTPOWER 320
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
-const int totalW =20000*4;
+const int totalW =16000*4;
 const int n = 36;
 int value[36] = {0};
 int weight[36] = {0};
@@ -355,6 +355,7 @@ int getAveragePower()
 		{
 			if ( powerAlocate[i] == averagePower )
 			{
+				
 				if ( powerAlocate[i] - powerAlocate[i+1] > 0 ) 
 				{
 					powerAlocate[i] = powerAlocate[i+1] + MAXINTERVAL;
@@ -363,6 +364,22 @@ int getAveragePower()
 				{
 					powerAlocate[i] = powerAlocate[i+1] - MAXINTERVAL;
 				}
+				
+				for ( int j = 0; j < i ; j++)
+				{
+					if ( abs(powerAlocate[i-j] - powerAlocate[i-j-1]) > MAXINTERVAL)
+					{
+						if ( powerAlocate[i-j-1] - powerAlocate[i-j] > 0 ) 
+				        {
+					        powerAlocate[i-j-1] = powerAlocate[i-j] + MAXINTERVAL;
+				        }
+				        else
+				        {
+							powerAlocate[i-j-1] = powerAlocate[i-j] - MAXINTERVAL;
+				        }
+					}
+				}
+				
 			}
 			else if ( powerAlocate[i+1] == averagePower )
 			{
@@ -383,7 +400,7 @@ int getAveragePower()
 		}
 	}
 	
-	/*
+	
 	
 	remainPower = totalW;
 	remainPowerCount = NODES;
@@ -421,7 +438,7 @@ int getAveragePower()
 			continue;
 		}
 	}
-	*/
+	
 	
 	//calculate the actual coal
 	for (int i = 0; i < NODES; i++)
