@@ -10,13 +10,15 @@ using namespace std;
 #define LOWESTPOWER 320
 const int INF = 0x3f3f3f3f;
 const int MAXL = 500+5;
-const int totalW =16000*4;
+const int totalW =13214*4;
 const int n = 36;
-int value[36] = {0};
-int weight[36] = {0};
+const int calcn = 71;
+int value[calcn] = {0};
+int weight[calcn] = {0};
 
 const int NODES = (24*60/15);  //96个节点
 int powerAlocate[NODES] = {0};
+int power10MW[calcn][2] = {0};
 
 /*
 int dp[30000];
@@ -26,7 +28,7 @@ int bag[MAXL][300000] ={0};
 int min(int a, int b) { return a < b ? a : b; }
  
 
-const int POWER[36][2] =  //{{300, 35428},
+const int POWER[n][2] =  //{{300, 35428},
 {{320, 34631},
 {340, 34314},
 {360, 34086},
@@ -69,9 +71,10 @@ bool getCoalConsumptionFromPower(int power, int &coalConsumption);
 int powerIncrease(int power, int increasePower);
 int powerStable (int power);
 int findPower (int averagePower);
-int setInputPower( int timeStart, int timeEnd, int power);
+int setInputPower( float timeStart, float timeEnd, int power);
 int getAveragePower();
 void saveToFile();
+void splitToPower10MW();
 
 /*
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
@@ -179,6 +182,7 @@ int main(){
 	cout << " power = " << getPower <<" stay, 30 min CoalConsumption = " << currentConsumption*2 << endl;
 	*/
 	
+	splitToPower10MW();
 	getAveragePower();
     return 0;
 }
@@ -186,10 +190,10 @@ int main(){
 //Function initCoalConsumptionAndPower
 void initCoalConsumptionAndPower()
 {
-	for( int i = 0; i < n; i++)
+	for( int i = 0; i < calcn; i++)
 	{
-		weight[i] = POWER[i][0];
-        value[i] = POWER[i][1];
+		weight[i] = power10MW[i][0];
+        value[i] = power10MW[i][1];
 	}
 
 }
@@ -197,11 +201,11 @@ void initCoalConsumptionAndPower()
 //Function getCoalConsumptionFromPower
 bool getCoalConsumptionFromPower(int power, int &coalConsumption)
 {
-	for( int i = 0; i < 37; i++)
+	for( int i = 0; i < calcn; i++)
 	{
-		if ( power == POWER[i][0])
+		if ( power == power10MW[i][0])
 		{
-			coalConsumption = POWER[i][1];
+			coalConsumption = power10MW[i][1];
 			return true;
 		}
 	}
@@ -253,11 +257,11 @@ int powerStable(int power)
 //Function findPower
 int findPower (int averagePower)
 {
-	for (int i = 0 ; i < 35 ; i++)
+	for (int i = 0 ; i < 70 ; i++)
 	{
-		int power = 320 + 20*i;
+		int power = 320 + 10*i;
 		if (( power - averagePower >= 0)
-			&& abs(power - averagePower) < 20)
+			&& abs(power - averagePower) < 10)
 			{
 				cout << "averagePower is " << averagePower << " then power should be " << power << endl;
 				return power;
@@ -271,7 +275,7 @@ int findPower (int averagePower)
 }
 
 //Function: setInputPower
-int setInputPower( int timeStart, int timeEnd, int power)
+int setInputPower( float timeStart, float timeEnd, int power)
 {
 	int count = 0;
 	if (( timeStart < 0 || timeStart > 24)
@@ -286,10 +290,10 @@ int setInputPower( int timeStart, int timeEnd, int power)
 			return 0;
 	}
 	
-	int startPosition = timeStart*4;
-	int endPosition = timeEnd*4 - 1;
+	int startPosition = (int)(timeStart*4);
+	int endPosition = (int)(timeEnd*4) - 1;
 	
-	count = timeEnd*4 - timeStart*4;
+	count = (int)(timeEnd*4) - (int)(timeStart*4);
 	
 	for (int i = startPosition; i <= endPosition; i++)
 	{
@@ -316,7 +320,7 @@ int getAveragePower()
 	int remainPower = totalW;
 	
 
-	setPowerCount = setInputPower(1, 6, 320);
+	setPowerCount = setInputPower(1.5, 6.5, 320);
 	remainPowerCount -= setPowerCount;
 	remainPower -= setPowerCount*320; //320 should modified. 
 	
@@ -487,4 +491,38 @@ int getAveragePower()
 	cout << " Origin totalpower = " << totalW << " actual totalpower = " << totalPower << endl;
 
 	return averagePower;
+}
+
+//Function 
+void splitToPower10MW()
+{
+	int Index = 0;
+	int count = 0;
+	
+	for ( int i = 0; i < n; i++ )
+	{
+		power10MW[Index][0] = POWER[i][0];
+		power10MW[Index][1] = POWER[i][1];
+		
+	    if ( i < (n - 1) )
+		{			
+		    power10MW[Index+1][0] = (int)(POWER[i][0]+POWER[i+1][0])/2;
+		    power10MW[Index+1][1] = (int)(POWER[i][1]+POWER[i+1][1])/2;
+		}
+		
+		Index += 2;
+	}
+	
+	for (int j = 0; j < calcn; j++)
+	{
+		if ( 0 != power10MW[j][0])
+		{
+			cout << "weight = " << power10MW[j][0] << " power = " << power10MW[j][1] << endl;
+		    count ++;
+		}
+	}
+	
+	cout << "count = " << count << endl;
+	
+	
 }
