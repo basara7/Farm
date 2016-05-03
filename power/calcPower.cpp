@@ -1,16 +1,13 @@
-//动态规划 背包问题 
-//#include "stdafx.h"
 #include <iostream>   
-#include<cstdio>
-#include<cstring>
-#include<fstream>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <stdlib.h>
 using namespace std;
 
 #define MAXINTERVAL 200
 #define LOWESTPOWER 320
-const int INF = 0x3f3f3f3f;
-const int MAXL = 500+5;
-const int totalW =13214*4;
+#define HIGHESTPOWER 1020
 const int n = 36;
 const int calcn = 71;
 int value[calcn] = {0};
@@ -20,6 +17,13 @@ const int NODES = (24*60/15);  //96个节点
 int powerAlocate[NODES] = {0};
 int power10MW[calcn][2] = {0};
 
+int remainPowerCount = NODES;
+int totalW = 0;
+int remainPower = 0;
+
+
+//const int INF = 0x3f3f3f3f;
+//const int MAXL = 500+5;
 /*
 int dp[30000];
 int bag[MAXL][300000] ={0};
@@ -75,6 +79,7 @@ int setInputPower( float timeStart, float timeEnd, int power);
 int getAveragePower();
 void saveToFile();
 void splitToPower10MW();
+bool inputAndCheck();
 
 /*
 //1.程序的主要目的为根据全天总电量，结合每个负荷点的煤耗，规划处全天最佳煤耗运行图
@@ -183,7 +188,18 @@ int main(){
 	*/
 	
 	splitToPower10MW();
-	getAveragePower();
+	if ( inputAndCheck())
+	{
+		if (getAveragePower())
+		{
+		    cout << "计算完毕，请检查软件目录下的power.txt文件" << endl;
+		}
+		else
+		{
+			cout << "计算失败，请重新检查输入是否正确" << endl;
+		}
+	}
+	system("pause");
     return 0;
 }
 
@@ -259,7 +275,7 @@ int findPower (int averagePower)
 {
 	for (int i = 0 ; i < 70 ; i++)
 	{
-		int power = 320 + 10*i;
+		int power = LOWESTPOWER + 10*i;
 		if (( power - averagePower >= 0)
 			&& abs(power - averagePower) < 10)
 			{
@@ -315,27 +331,20 @@ int setInputPower( float timeStart, float timeEnd, int power)
 int getAveragePower()
 {
 	int averagePower = 0;
-	int setPowerCount = 0; 
-	int remainPowerCount = NODES;
-	int remainPower = totalW;
-	
-
-	setPowerCount = setInputPower(1.5, 6.5, 320);
-	remainPowerCount -= setPowerCount;
-	remainPower -= setPowerCount*320; //320 should modified. 
-	
-	//setPowerCount = setInputPower(21, 23, 980);
-	//remainPowerCount -= setPowerCount;
-	//remainPower -= setPowerCount*980; //400 should modified. 
-	cout << " remainPowerCount = " << remainPowerCount << endl;
-	cout << " remainPower = " << remainPower << endl;
 	
 	averagePower = (int)remainPower/remainPowerCount;
 	cout << " averagePower = " << averagePower << endl;
 	
-	averagePower = findPower(averagePower);
-	cout << " find : averagePower = " << averagePower << endl;
-	
+	if ( averagePower >= LOWESTPOWER && averagePower <= HIGHESTPOWER)
+	{
+	    averagePower = findPower(averagePower);
+	    cout << " find : averagePower = " << averagePower << endl;
+	}
+	else
+	{
+		cout <<" can't find the averagePower!! "<<endl;
+		return 0;
+	}
 	
 	//test 1 case
 	//1. 320 -> average
@@ -477,18 +486,18 @@ int getAveragePower()
 	int totalPower = 0;
 	for (int j = 0; j < NODES; j++)
 	{
-		cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
+		//cout << "index = " << j << " powerAlocate = " << powerAlocate[j] << endl;
 		
-		outfile << j << "   " <<  powerAlocate[j] << endl;
+		outfile <<  powerAlocate[j] << endl;
 		
 		totalPower += powerAlocate[j];
 	}
 	
 	outfile.close();
 	
-	cout << " totalCoal = " << totalCoal << endl;
+	cout << " 当天的总耗煤量为  " << totalCoal << endl;
 	
-	cout << " Origin totalpower = " << totalW << " actual totalpower = " << totalPower << endl;
+	cout << " 原始输入发电量为： " << ((float)(totalW)/40) << " 实际发电量为：" << ((float)(totalPower)/40) << endl;
 
 	return averagePower;
 }
@@ -517,12 +526,102 @@ void splitToPower10MW()
 	{
 		if ( 0 != power10MW[j][0])
 		{
-			cout << "weight = " << power10MW[j][0] << " power = " << power10MW[j][1] << endl;
+			//cout << "weight = " << power10MW[j][0] << " power = " << power10MW[j][1] << endl;
 		    count ++;
 		}
 	}
 	
-	cout << "count = " << count << endl;
+	//cout << "count = " << count << endl;
 	
 	
+}
+
+bool inputAndCheck()
+{
+	//输入数据：
+	/*
+	1.需要输入当天总发电量
+	2.需要输入设定值的时间段的个数
+	3.依次输入每个时间段的起止时间，例如：1点30分->1.5,1点15分->1.25,1点45分->1.75
+	4.输入每个时间段的设定功率
+	举例：
+	设定两个时间段：1. 1点15分到5点45分  功率为320
+					2. 15点30分到18点    功率为760
+	输入为： 2
+	         1.15 5.45
+			 320
+	         15.5 18
+		     760
+	*/
+	
+	float totalPower = 0;	
+	cout << "请输入当天总发电量：";
+	cin >> totalPower;
+	totalPower = totalPower*10;
+	if ( totalPower < (LOWESTPOWER * 24) || totalPower > (HIGHESTPOWER * 24) )
+	{
+		cout << "输入错误，请检查总发电量数值是否正确" << endl;
+		return false;
+	}
+	totalW = (int) (totalPower*4);
+	remainPower = totalW;
+	
+    int inputCount = 0;
+	cout << "请输入需要设定的时间段的个数(最大设置个数为9， 如果没有请输入0)：";
+	cin >> inputCount;
+	
+	if ( inputCount < 0 || inputCount > 10)
+	{
+		cout << "Wrong input!" << endl;
+		return false;
+	}
+	
+	if ( !inputCount )
+	{
+		return true;
+	}
+	
+	cout << endl;
+	cout << "依次输入每个时间段的起止时间和设定功率"<<endl;
+	for ( int i = 0; i < inputCount; i ++ )
+	{
+		float timeStart =0.0;
+		float timeEnd = 0.0;
+		int power = 0;
+		cout << "第" <<(i+1)<<"个时间段:"<<endl;
+		cin >> timeStart >> timeEnd >> power;
+		
+		/*
+		cout << "test ----------" << endl;
+		cout << timeStart <<endl;
+		cout << timeEnd << endl;
+		cout << power <<endl;
+		*/
+		
+		//check 
+	    if ( timeStart >= timeEnd )
+		{
+			cout << "输入错误，请检查起止时间!!"<< endl;
+			return false;
+		}
+		if ( power < LOWESTPOWER || power > HIGHESTPOWER )
+		{
+			cout << "输入错误，请检查功率值的范围（320~1020）!!"<< endl;
+			return false;
+		}
+		
+		//set power
+		int setPowerCount = setInputPower(timeStart, timeEnd, power);
+	    remainPowerCount -= setPowerCount;
+	    remainPower -= setPowerCount * power;
+	    
+		/*
+		cout << "test ----------" << endl;
+		cout << " remainPowerCount = " << remainPowerCount << endl;
+	    cout << " remainPower = " << remainPower << endl;
+		*/
+	}
+	
+	cout << "输入完毕，开始计算......" << endl;
+	return true;
 }
